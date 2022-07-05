@@ -794,6 +794,8 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, MarkerPtr mar
 {
   k4a_float3_t position = body.skeleton.joints[jointType].position;
   k4a_quaternion_t orientation = body.skeleton.joints[jointType].orientation;
+  k4abt_joint_confidence_level_t confidence_level = body.skeleton.joints[jointType].confidence_level;
+  int confidence_enum = static_cast<int>(confidence_level);
   std::string depth_frame = calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_;
   std::string rgb_frame = calibration_data_.tf_prefix_ + calibration_data_.rgb_camera_frame_;
 
@@ -806,12 +808,18 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, MarkerPtr mar
   marker_msg->id = body.id * 100 + jointType;
   marker_msg->type = Marker::SPHERE;
 
-  Color color = BODY_COLOR_PALETTE[body.id % BODY_COLOR_PALETTE.size()];
+  //Color color = BODY_COLOR_PALETTE[body.id % BODY_COLOR_PALETTE.size()];
 
-  marker_msg->color.a = color.a;
-  marker_msg->color.r = color.r;
-  marker_msg->color.g = color.g;
-  marker_msg->color.b = color.b;
+  //marker_msg->color.a = color.a;
+  //marker_msg->color.r = color.r;
+  //marker_msg->color.g = color.g;
+  //marker_msg->color.b = color.b;
+  switch(confidence_enum) {
+    case 0 : { marker_msg->color.a = 1.0f; marker_msg->color.r = 1.0f; marker_msg->color.g = 0.0f; marker_msg->color.b = 0.0f; break;}
+    case 1 : { marker_msg->color.a = 1.0f; marker_msg->color.b = 1.0f; marker_msg->color.g = 0.0f; marker_msg->color.r = 0.0f; break;}
+    case 2 : { marker_msg->color.a = 1.0f; marker_msg->color.g = 1.0f; marker_msg->color.r = 0.0f; marker_msg->color.b = 0.0f; break;}
+    default: { marker_msg->color.a = 1.0f; marker_msg->color.g = 1.0f; marker_msg->color.r = 0.0f; marker_msg->color.b = 0.0f; break;}
+  }
 
   marker_msg->scale.x = 0.05;
   marker_msg->scale.y = 0.05;
